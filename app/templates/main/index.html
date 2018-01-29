@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block head %}
+    <title>bind-web管理系统</title>
+{% endblock %}
+{% block body %}
+<div class="row">
+{# 左边菜单#}
+{% include 'main/_main.html' %}
+    <div class="col-md-10">
+        {#        面包屑导航#}
+                <ol class="breadcrumb" style="margin-bottom: 10px">
+                    <li><a href="/">首页</a></li>
+                    <li class="active">域名列表</li>
+                </ol>
+        {#        域名列表#}
+        <div class="row"  >
+            <div class="col-md-6" style="margin-bottom: 5px">
+                    <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#add_domain" type="button">添加域名</button>
+                    <button class="btn btn-sm btn-danger" data-toggle="modal" id="Btn_del" type="button" disabled="disabled">删除域名</button>
+            </div>
+        </div>
+        <div class="row">
+                <div class="col-md-12">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-striped" >
+                            <thead>
+                                <tr class="success">
+                                    <th width="2%">#</th>
+                                    <th>域名</th>
+                                    <th width="20%">域名状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for d in dns %}
+                                <tr>
+                                    <td><input type="radio" name="radio" class="radio" value="{{ d.id }}"></td>
+                                    <td><a href="{{ url_for('main.domain_list',zone=d.zone) }}">{{ d.zone }}</a></td>
+                                    <td><span class="{{'status label label-success' if d.status == 1 else 'status label label-warning'}}">
+                                        {{ '激活' if d.status== 1 else '禁用' }}
+                                        </span></td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{# 添加域名解析#}
+{% include 'domain/add_domain.html' %}
+{# ajax返回消息模态窗口#}
+{% include 'msg.html' %}
+{% endblock %}
+{% block js_script %}
+    <script type="application/javascript">
+        $(document).ready(function() {
+            {#          返回消息#}
+            function msg(op, title, body) {
+                if (op == 'ok') {
+                    $('.msg-title').html(title).addClass('alert alert-success');
+                    $('.msg-body').html(body);
+                    $('#myModal').modal('show');
+                } else if (op == 'error') {
+                    $('.msg-title').html(title).addClass('alert alert-warning');
+                    $('.msg-body').html(body);
+                    $('#myModal').modal('show');
+                }
+            };
+
+{#          添加域名#}
+            $('#add').validate({
+                rules: {
+                    add_dom: {required: true,remote:'/check_domain/'},
+                },
+                messages: {
+                    add_dom: {required: '域名必填！',remote:'域名重复!'},
+                },
+                submitHandler: function (form) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/add_domain/',
+                        data: $(form).serialize(),
+                        dataType: 'json',
+                        success: function (data) {
+                            $('#add_domain').modal('hide');
+                            alert(data.status);
+                            window.location.reload();
+                        },
+                        error: function (data) {
+                            $('#add_domain').modal('hide');
+                            msg(data.status, data.title, data.txt);
+                        }
+                    })
+                },
+            });
+
+{#      激活删除按钮#}
+            $('.radio').click(function(){
+                var zone = $(this).parent().parent().find('td:eq(1)').text();
+                $('#Btn_del').removeAttr("disabled").val(zone);
+            });
+
+{#       删除域名#}
+            $('#Btn_del').click(function(){
+            var msg = "确定删除该域名？";
+            if (confirm(msg)==true) {
+                var zone = $(this).attr('value');
+                var zone_data = {
+                    'zone': zone,
+                };
+                $.ajax({
+                    url: '/del_domain/',
+                    type: 'post',
+                    dataType: 'json',
+                    data: zone_data,
+                    success: function (data) {
+                        alert(data.status);
+                        window.location.reload();
+                    },
+                    error: function (e) {
+                        console.log(e)
+                    }
+                });
+            }else{
+                return false;
+            }
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{# 添加域名解析模态窗口#}
+<div class="modal fade" id="add_zone" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="exampleModalLabel">添加域名解析</h4>
+      </div>
+      <div class="modal-body">
+          <h5 style="margin: 5px;">域名：{{ domains[0]['zone'] }}</h5>
+          <div class="well well-sm">
+            <p style="font-size:6px;">主机记录就是域名前缀，常见用法有：</p>
+            <p style="font-size:6px;">www：解析后的域名为 www.{{ domains[0]['zone'] }}</p>
+            <p style="font-size:6px;">@  ：直接解析主域名 {{ domains[0]['zone'] }}</p>
+            <p style="font-size:6px;">*  ：泛解析，匹配其他所有域名 *.{{ domains[0]['zone'] }}</p>
+          </div>
+        <form action="#" method="post" id="add">
+            <input type="hidden" name="add_zone" id="add_zone" value="{{ domains[0]['zone'] }}">
+          <div class="form-group">
+            <label for="add_host" class="control-label">主机记录:</label>
+            <input type="text" class="form-control" name='add_host' id="add_host">
+          </div>
+          <div class="form-group">
+            <label for="add_type" class="control-label">记录类型:</label>
+            <select class="form-control" name='add_type' id="add_type">
+                {% for t  in type %}
+                  <option value ="{{ t  }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="add_view" class="control-label">线路类型:</label>
+            <select class="form-control" name='add_view' id="add_view">
+                {% for k,v  in view.iteritems() %}
+                  <option value ="{{ k  }}">{{ v }}</option>
+                {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="add_data" class="control-label">记录值:</label>
+            <input type="text" class="form-control" name='add_data' id="add_data">
+          </div>
+          <div class="form-group">
+            <label for="add_ttl" class="control-label">TTL(秒):</label>
+            <select class="form-control" name='add_ttl' id="add_ttl">
+                {% for ttl  in ttls %}
+                  <option value ="{{ ttl  }}">{{ ttl }}</option>
+                {% endfor %}
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+            <button type="submit" id='btnSubmit' class="btn btn-primary">添加</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

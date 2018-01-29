@@ -1,0 +1,54 @@
+{# edit域名模态窗口#}
+<div class="modal fade" id="edit_zone" tabindex="-1" role="dialog" aria-labelledby="editexampleModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="editexampleModalLabel">修改域名解析</h4>
+      </div>
+      <div class="modal-body">
+          <h5 style="margin: 5px;">域名：{{ domains[0]['zone'] }}</h5>
+        <form action="#" method="post" id="edit">
+            <input type="hidden" name="edit_id" id="edit_id">
+            <input type="hidden" name="edit_zone" id="edit_zone" value="{{ domains[0]['zone'] }}">
+          <div class="form-group">
+            <label for="edit_host" class="control-label">主机记录:</label>
+            <input type="text" class="form-control" name='edit_host' id="edit_host">
+          </div>
+          <div class="form-group">
+            <label for="edit_type" class="control-label">记录类型:</label>
+            <select class="form-control" name='edit_type' id="edit_type">
+                {% for t  in type %}
+                  <option value ="{{ t  }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit_view" class="control-label">线路类型:</label>
+            <select class="form-control" name='edit_view' id="edit_view">
+                {% for k,v  in view.iteritems() %}
+                  <option value ="{{ k  }}">{{ v }}</option>
+                {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit_data" class="control-label">记录值:</label>
+            <input type="text" class="form-control" name='edit_data' id="edit_data">
+          </div>
+          <div class="form-group">
+            <label for="edit_ttl" class="control-label">TTL(秒):</label>
+            <select class="form-control" name='edit_ttl' id="edit_ttl">
+                {% for ttl  in ttls %}
+                  <option value ="{{ ttl  }}">{{ ttl }}</option>
+                {% endfor %}
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+            <button type="submit" id='btnSubmit' class="btn btn-primary">修改</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

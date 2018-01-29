@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% block head %}
+    <title>bind-web管理系统</title>
+{% endblock %}
+{% block body %}
+<div class="row">
+{# 左边菜单#}
+{% include 'main/_main.html' %}
+    <div class="col-md-10">
+        {#        面包屑导航#}
+                <ol class="breadcrumb" style="margin-bottom: 10px">
+                    <li><a href="/">首页</a></li>
+                    <li class="active">域名解析</li>
+                </ol>
+        {#       解析菜单#}
+        <div class="row"  >
+            <div class="col-md-6" style="margin-bottom: 5px">
+                    <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#add_zone" type="button">添加记录</button>
+                    <button class="btn btn-sm btn-warning" data-toggle="modal" id="Btn_edit" data-target="#edit_zone" type="button" disabled="disabled">修改记录</button>
+                    <span style="margin: 5px;">域名：{{ domains[0]['zone'] }}</span>
+            </div>
+        </div>
+        {#       解析列表#}
+        <div class="row">
+                <div class="col-md-12">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-striped" >
+                            <thead>
+                                <tr class="success">
+                                    <th width="2%">#</th>
+                                    <th width="116px;">主机记录</th>
+                                    <th width="100px;">记录类型</th>
+                                    <th width="100px;">线路类型</th>
+                                    <th>记录值</th>
+                                    <th width="52px;">权重</th>
+                                    <th width="100px;">MX优先级</th>
+                                    <th width="40px;">TTL</th>
+                                    <th width="100px;">状态</th>
+                                    <th width="100px;">操作</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for domain in domains %}
+                                {% if domain.host=='@' and domain.type=='NS' and (domain.data=='ns1.195165.com.'or domain.data=='ns2.195165.com.') %}
+                                <tr style="background:#f2f2f2 ">
+                                <td><input type="radio" name="radio" class="radio" value="{{ domain.id }}" disabled="disabled"></td>
+                                {% else %}
+                                <tr>
+                                <td><input type="radio" name="radio" class="radio" value="{{ domain.id }}"></td>
+                                {% endif %}
+
+                                    <td>{{ domain.host }}</td>
+                                    <td>{{ domain.type }}</td>
+                                    <td>{% if domain.view=='DF' %}
+                                        默认
+                                        {% elif domain.view=='CNC'%}
+                                        联通
+                                        {% else %}
+                                        电信
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ domain.data }}</td>
+                                    <td>-</td>
+                                    <td>{{ domain.mx_priority if domain.mx_priority != None else '-' }}
+                                    </td>
+                                    <td>{{ domain.ttl }}</td>
+                                    <td><span class="{{'status label label-success' if domain.status == 1 else 'status label label-warning'}}">
+                                        {{ '启用' if domain.status== 1 else '暂停' }}
+                                        </span></td>
+                                    <td>
+                                        {% if domain.host=='@' and domain.type=='NS' and (domain.data=='ns1.195165.com.'or domain.data=='ns2.195165.com.') %}
+                                        {% else %}
+                                            <a href="#"  class="domain_del" value="{{ domain.id }}" disabled='disabled'>删除</a>
+                                            {% if domain.status ==1 %}
+                                                <a href="#" class="domain_stop" title="{{ domain.id }}" value="0">暂停</a>
+                                            {% else %}
+                                               <a href="#" class="domain_start" title="{{ domain.id }}" value="1">启用</a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{# 添加域名解析#}
+{% include 'domain/add_zone.html' %}
+{# 修改域名解析#}
+{% include 'domain/edit_zone.html' %}
+{# ajax返回消息模态窗口#}
+{% include 'msg.html' %}
+{% endblock %}
+{% block js_script %}
+    <script type="application/javascript">
+        $(document).ready(function() {
+            {#          返回消息#}
+            function msg(op, title, body) {
+                if (op == 'ok') {
+                    $('.msg-title').html(title).addClass('alert alert-success');
+                    $('.msg-body').html(body);
+                    $('#myModal').modal('show');
+                } else if (op == 'error') {
+                    $('.msg-title').html(title).addClass('alert alert-warning');
+                    $('.msg-body').html(body);
+                    $('#myModal').modal('show');
+                }
+            };
+{#      激活修改按钮#}
+            $('.radio').click(function(){
+                var id = $(this).attr('value');
+                $('#Btn_edit').removeAttr("disabled").val(id);
+            });
+{#            暂停记录#}
+            $('.domain_stop').click(function(){
+                var id = $(this).attr('title');
+                var val = $(this).attr('value');
+                var stop_data ={
+                    'id': id,
+                    'val' : val,
+                };
+                $.ajax({
+                    url:'/domain_status/',
+                    type:'post',
+                    dataType:'json',
+                    data:stop_data,
+                    success:function(data){
+                        console.log(data);
+                        window.location.reload();
+                    },
+                    error:function(e){
+                        console.log(e)
+                    }
+                });
+
+            });
+{#            启用记录#}
+            $('.domain_start').click(function(){
+                var id = $(this).attr('title');
+                var val = $(this).attr('value');
+                var stop_data ={
+                    'id': id,
+                    'val' : val,
+                };
+                $.ajax({
+                    url:'/domain_status/',
+                    type:'post',
+                    dataType:'json',
+                    data:stop_data,
+                    success:function(data){
+                        window.location.reload();
+                    },
+                    error:function(e){
+                        console.log(e)
+                    }
+                });
+            });
+{#          添加域名解析#}
+            $('#add').validate({
+                    rules: {
+                        add_host: {required: true},
+                        add_type: {required: true},
+                        add_view: {required: true},
+                        add_data: {required: true},
+                        add_ttl: {required: true},
+                    },
+                    messages: {
+                        add_host: {required: '主机记录必填！'},
+                        add_type: {required: '记录类型必填！'},
+                        add_view: {required: '线路类型必填！'},
+                        add_data: {required: '记录值必填！'},
+                        add_ttl: {required: 'TTL必填！'},
+                    },
+                    submitHandler:function(form){
+                        $.ajax({
+                            type:'POST',
+                            url:'/add_zone/',
+                            data:$(form).serialize(),
+                            dataType: 'json',
+                            success: function (data) {
+                                $('#add_zone').modal('hide');
+                                alert(data.txt);
+                                window.location.reload();
+                            },
+                            error:function(data){
+                                $('#add_zone').modal('hide');
+                                msg(data.status,data.title,data.txt);
+                            }
+                        })
+                    },
+
+            });
+{#          删除域名解析#}
+            $('.domain_del').click(function(){
+                var id = $(this).attr('value');
+                var del_data ={
+                    'id': id,
+                };
+                var msg = "确定删除该条解析？";
+                if (confirm(msg)==true){
+                    $.ajax({
+                        url:'/del_zone/',
+                        type:'post',
+                        dataType:'json',
+                        data:del_data,
+                        success:function(data){
+                            alert(data.status);
+                            window.location.reload();
+                        },
+                        error:function(e){
+                            console.log(e)
+                        }
+                    });
+                }else{
+                    return false;
+                }
+
+
+            });
+{#          修改域名解析#}
+{#            获取修改数据#}
+            $("#Btn_edit").click(function(){
+                var id = $(this).val();
+                var id_data={
+                    'id': id,
+                }
+                $.ajax({
+                    url:'/update_zone/',
+                    type:'get',
+                    dataType:'json',
+                    data:id_data,
+                    success:function(data){
+                          console.log(data);
+                        $('#edit_host').val(data.host);
+                        $('#edit_id').val(data.id);
+                        $('#edit_data').val(data.data);
+                        $('#edit_type option').each(function(){
+                            if ($(this).val()==data.type){
+                                $(this).attr("selected",true);
+                            }else{
+                                $(this).attr("selected",false);
+                            }
+                        });
+                        $('#edit_view option').each(function(){
+                            if ($(this).val()==data.view){
+                                $(this).attr("selected",true);
+                            }else{
+                                $(this).attr("selected",false);
+                            }
+                        });
+                        $('#edit_ttl option').each(function(){
+                            if ($(this).val()==data.ttl){
+                                $(this).attr("selected",true);
+                            }else{
+                                $(this).attr("selected",false);
+                            }
+                        });
+
+                    },
+                    error:function(e){
+                        console.log(e)
+                    }
+                });
+
+            });
+{#          修改提交域名解析数据#}
+            $('#edit').validate({
+                    rules: {
+                        add_host: {required: true},
+                        add_type: {required: true},
+                        add_view: {required: true},
+                        add_data: {required: true},
+                        add_ttl: {required: true},
+                    },
+                    messages: {
+                        add_host: {required: '主机记录必填！'},
+                        add_type: {required: '记录类型必填！'},
+                        add_view: {required: '线路类型必填！'},
+                        add_data: {required: '记录值必填！'},
+                        add_ttl: {required: 'TTL必填！'},
+                    },
+                    submitHandler:function(form){
+                        $.ajax({
+                            type:'POST',
+                            url:'/update_zone/',
+                            data:$(form).serialize(),
+                            dataType: 'json',
+                            beforeSend: function(){
+                                $('#edit_zone').modal('hide');
+                            },
+                            success: function (data) {
+                                alert(data.txt);
+                                window.location.reload();
+                            },
+                            error:function(data){
+                                $('#edit_zone').modal('hide');
+                                msg(data.status,data.title,data.txt);
+                            }
+                        })
+                    },
+
+            });
+
+
+        });
+    </script>
+{% endblock %}
